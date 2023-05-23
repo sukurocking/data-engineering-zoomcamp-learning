@@ -1,8 +1,8 @@
 FROM python:3.9
 
-RUN pip install pandas
+RUN pip install pandas, sqlalchemy, time, psycopg2, argparse, os
 
 WORKDIR /app
-COPY pipeline.py pipeline.py
+COPY ingest_data.py ingest_data.py
 
-ENTRYPOINT [ "bash" ]
+ENTRYPOINT [ "python", "ingest_data.py"]
