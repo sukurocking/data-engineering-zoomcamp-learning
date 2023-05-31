@@ -12,30 +12,32 @@ import os
 parser = argparse.ArgumentParser(description='Builds a pipeline to download data from a url and ingest data into a postgres table')
 parser.add_argument('--user', type=str, required=True, help='POSTGRES_USER')
 parser.add_argument('--password', type=str, required=True, help='POSTGRES_PASSWORD')
+parser.add_argument('--host', type=str, required=True, help='POSTGRES_HOST')
+parser.add_argument('--port', type=str, required=True, help='POSTGRES PORT')
 parser.add_argument('--dbname', type=str, required=True, help='POSTGRES_DB')
 parser.add_argument('--tablename', type=str, required=True, help='POSTGRES_TABLENAME')
-parser.add_argument('--yrmon', type=str, required=True, help="TARGET_MONTH_DATA_TO_INGEST in format YYYY-MM")
+# parser.add_argument('--yrmon', type=str, required=True, help="TARGET_MONTH_DATA_TO_INGEST in format YYYY-MM")
+parser.add_argument('--url', type=str, required=True, help='URL path from where the data is saved and is to be ingested')
 
 args = parser.parse_args()
 # print(args.user, args.password, args.dbname, args.tablename)
 
-host = 'localhost'
-port = "5432"
+host = args.host
+port = args.port
 pg_url = f'postgresql://{args.user}:{args.password}@{host}:{port}/{args.dbname}'
 con = sqlalchemy.create_engine(pg_url, client_encoding='utf8')
 # exit()
 
 # url to download from 
-month = args.yrmon
-url = f"https://github.com/DataTalksClub/nyc-tlc-data/releases/download/yellow/yellow_tripdata_{args.yrmon}.csv.gz"
+url = args.url
 data_files_path = "./data_files"
 if not os.path.exists(data_files_path):
     os.mkdir(data_files_path)
 
-download_file_path = data_files_path + f"/data_file_{args.yrmon}.csv.gz"
+download_file_path = data_files_path + "/data_file.csv.gz"
 
 # Download the gz file and unzip to csv file
-os.system(f"wget -O {download_file_path} " + url)
+os.system(f"wget -q -O {download_file_path} " + url)
 os.system(f"gunzip {download_file_path}")
 
 # exit()
@@ -47,7 +49,7 @@ os.system(f"gunzip {download_file_path}")
 # Now, we want to create an empty table in postgres with the structure as specified above
 
 # df.to_sql(name="yellow_taxi_data", con=con, if_exists="replace", chunksize=100000)
-csv_file_path = data_files_path + f"/data_file_{args.yrmon}.csv"
+csv_file_path = data_files_path + f"/data_file.csv"
 df_iter = pd.read_csv(csv_file_path, iterator=True, chunksize=1000000)
 df = next(df_iter)
 
