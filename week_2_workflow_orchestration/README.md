@@ -1,0 +1,1 @@
+- Importing flow and task from prefect to clean up the ingest_data.py script
