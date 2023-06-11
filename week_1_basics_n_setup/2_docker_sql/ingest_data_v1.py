@@ -30,7 +30,7 @@ con = sqlalchemy.create_engine(pg_url, client_encoding='utf8')
 
 # url to download from 
 url = args.url
-data_files_path = "./data_files"
+data_files_path = "../../data_files"
 if not os.path.exists(data_files_path):
     os.mkdir(data_files_path)
 
