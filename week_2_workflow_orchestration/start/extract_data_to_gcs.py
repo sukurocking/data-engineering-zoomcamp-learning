@@ -23,28 +23,30 @@ def main_flow():
     url = f"https://github.com/DataTalksClub/nyc-tlc-data/releases/download/{color}/{color}_tripdata_{year}-{month}.csv.gz"
     
     # Extract the data from the url
-    df = extract_data(url)
+    df = extract_data(url, color, year, month)
     # print(df.dtypes)
     # print(df.head())
     
     # Clean the dataframe
     clean_df = clean_data(df)
     
+    
     # Writing the cleaned df to a parquet file in local filesystem
-    local_path = f"../../data_files/{color}/{year}-{month}.parquet"
-    clean_df.to_parquet(path=local_path)
+    local_path = f"../../data_files/{color}/cleaned-{year}-{month}.csv.gz"
+    # clean_df.to_parquet(path=local_path)
+    clean_df.to_csv(local_path, compression="gzip")
     
     # Writing the parquet file to GCS bucket
     gcp_cloud_storage_bucket = GcsBucket.load("gcs-bucket-zoom-new")
-    gcp_path =  f"{color}/{year}-{month}.parquet"
+    gcp_path =  f"{color}/{year}-{month}.csv.gz"
     
     gcp_cloud_storage_bucket.upload_from_path(from_path = local_path, to_path = gcp_path)
     
     
 
 @task(retries=3, log_prints=True, cache_key_fn=task_input_hash, cache_expiration=timedelta(days=1))
-def extract_data(url: str) -> pd.DataFrame:
-    download_path = "../../data_files/data_file.csv.gz"
+def extract_data(url: str, color: str, year: str, month: str) -> pd.DataFrame:
+    download_path = f"../../data_files/{color}/{year}-{month}.csv.gz"
     os.system(f"wget -O {download_path} {url}")
     raw_df = pd.read_csv(download_path)
     raw_df["tpep_pickup_datetime"] = pd.to_datetime(raw_df["tpep_pickup_datetime"])
