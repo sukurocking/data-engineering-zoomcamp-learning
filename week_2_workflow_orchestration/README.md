@@ -1,5 +1,3 @@
 - Importing flow and task from prefect to clean up the ingest_data.py script
 - Flow 1: Putting data to Google Cloud Storage
 - Flow 2: From GCS to BigQuery
-
-- 
