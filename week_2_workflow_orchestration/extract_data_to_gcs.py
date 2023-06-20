@@ -32,7 +32,7 @@ def main_flow():
     
     
     # Writing the cleaned df to a parquet file in local filesystem
-    local_path = f"../../data_files/{color}/cleaned-{year}-{month}.csv.gz"
+    local_path = f"../data_files/{color}/cleaned-{year}-{month}.csv.gz"
     # clean_df.to_parquet(path=local_path)
     clean_df.to_csv(local_path, compression="gzip")
     
@@ -46,7 +46,7 @@ def main_flow():
 
 @task(retries=3, log_prints=True, cache_key_fn=task_input_hash, cache_expiration=timedelta(days=1))
 def extract_data(url: str, color: str, year: str, month: str) -> pd.DataFrame:
-    download_path = f"../../data_files/{color}/{year}-{month}.csv.gz"
+    download_path = f"../data_files/{color}/{year}-{month}.csv.gz"
     os.system(f"wget -O {download_path} {url}")
     raw_df = pd.read_csv(download_path)
     raw_df["tpep_pickup_datetime"] = pd.to_datetime(raw_df["tpep_pickup_datetime"])
