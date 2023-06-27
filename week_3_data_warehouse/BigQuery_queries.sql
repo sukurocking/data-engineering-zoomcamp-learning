@@ -54,3 +54,10 @@ partition by DATE(tpep_pickup_datetime)
 cluster by PULocationID
 as select * from `trips_data_all.ny_taxi`;
 
+-- Creating a temporary table
+begin
+CREATE TEMPORARY TABLE temp_table AS
+SELECT *
+FROM `trips_data_all.ny_taxi`;
+select * from temp_table;
+end;
