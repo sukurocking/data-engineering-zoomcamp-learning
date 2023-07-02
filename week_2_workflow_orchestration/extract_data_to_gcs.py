@@ -16,10 +16,7 @@ from prefect_gcp.cloud_storage import GcsBucket
 
 
 @flow(retries=3, log_prints=True)
-def main_flow():
-    month = "02"
-    year = "2019"
-    color = "yellow"
+def main_flow(color: str, month: str, year: str):
     url = f"https://github.com/DataTalksClub/nyc-tlc-data/releases/download/{color}/{color}_tripdata_{year}-{month}.csv.gz"
     
     # Extract the data from the url
@@ -32,21 +29,26 @@ def main_flow():
     
     
     # Writing the cleaned df to a parquet file in local filesystem
-    local_path = f"../data_files/{color}/cleaned-{year}-{month}.csv.gz"
+    local_path = f"../data_files/{color}/clean_{color}_tripdata_{year}-{month}.csv.gz"
     # clean_df.to_parquet(path=local_path)
     clean_df.to_csv(local_path, compression="gzip")
     
     # Writing the parquet file to GCS bucket
     gcp_cloud_storage_bucket = GcsBucket.load("gcs-bucket-zoom-new")
-    gcp_path =  f"{color}/{year}-{month}.csv.gz"
+    gcp_path =  f"{color}/{color}_tripdata_{year}-{month}.csv.gz"
     
     gcp_cloud_storage_bucket.upload_from_path(from_path = local_path, to_path = gcp_path)
     
+    # Deleting local files
+    delete_files()
+    
+    
     
 
-@task(retries=3, log_prints=True, cache_key_fn=task_input_hash, cache_expiration=timedelta(days=1))
+# @task(retries=3, log_prints=True, cache_key_fn=task_input_hash, cache_expiration=timedelta(days=1))
+@task(retries=2, log_prints=True)
 def extract_data(url: str, color: str, year: str, month: str) -> pd.DataFrame:
-    download_path = f"../data_files/{color}/{year}-{month}.csv.gz"
+    download_path = f"../data_files/{color}/{color}_tripdata_{year}-{month}.csv.gz"
     os.system(f"wget -O {download_path} {url}")
     raw_df = pd.read_csv(download_path)
     raw_df["tpep_pickup_datetime"] = pd.to_datetime(raw_df["tpep_pickup_datetime"])
@@ -56,10 +58,10 @@ def extract_data(url: str, color: str, year: str, month: str) -> pd.DataFrame:
 
 @task(retries=3, log_prints=True)
 def clean_data(raw_df: pd.DataFrame) -> pd.DataFrame:
-    print(f'pre: missing passenger count: {raw_df["passenger_count"].isin([0]).sum()}')
+    print(f'pre: missing passenger count: {raw_df["passenger_count"].isna().sum()}')
     # raw_df["passenger_count"].fillna(0, inplace=True)
-    raw_df = raw_df[raw_df["passenger_count"] > 0]
-    print(f'post: missing passenger count: {raw_df["passenger_count"].isin([0]).sum()}')
+    raw_df = raw_df[raw_df["passenger_count"].isna()==False]
+    print(f'post: missing passenger count: {raw_df["passenger_count"].isna().sum()}')
     return raw_df
 
 # @task(retries=3, log_prints=True)
@@ -67,5 +69,19 @@ def clean_data(raw_df: pd.DataFrame) -> pd.DataFrame:
 #     pass
 
 
+@task(retries=3, log_prints=True)
+def delete_files() -> None:
+    raw_file = f"../data_files/{color}/{color}_tripdata_{year}-{month}.csv.gz"
+    cleaned_file = f"../data_files/{color}/clean_{color}_tripdata_{year}-{month}.csv.gz"
+    for file in [raw_file, cleaned_file]:
+        os.unlink(file)
+
 if __name__ == "__main__":
-    main_flow()
+    # month = "02"
+    # year = "2019"
+    color = "yellow"
+    months_list = range(6,13)
+    months_list_str = [f"{month:02}" for month in months_list]
+    for year in ["2019"]:
+        for month in months_list_str:
+            main_flow(color, month, year)
