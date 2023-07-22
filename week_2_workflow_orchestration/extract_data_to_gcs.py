@@ -29,7 +29,7 @@ def main_flow(color: str, month: str, year: str):
     
     
     # Writing the cleaned df to a parquet file in local filesystem
-    local_path = f"../data_files/{color}/clean_{color}_tripdata_{year}-{month}.csv.gz"
+    local_path = f"../data_files/{color}/raw/clean_{color}_tripdata_{year}-{month}.csv.gz"
     # clean_df.to_parquet(path=local_path)
     clean_df.to_csv(local_path, compression="gzip")
     
@@ -48,11 +48,15 @@ def main_flow(color: str, month: str, year: str):
 # @task(retries=3, log_prints=True, cache_key_fn=task_input_hash, cache_expiration=timedelta(days=1))
 @task(retries=2, log_prints=True)
 def extract_data(url: str, color: str, year: str, month: str) -> pd.DataFrame:
-    download_path = f"../data_files/{color}/{color}_tripdata_{year}-{month}.csv.gz"
+    download_path = f"../data_files/{color}/raw/{color}_tripdata_{year}-{month}.csv.gz"
     os.system(f"wget -O {download_path} {url}")
     raw_df = pd.read_csv(download_path)
-    raw_df["tpep_pickup_datetime"] = pd.to_datetime(raw_df["tpep_pickup_datetime"])
-    raw_df["tpep_pickup_datetime"] = pd.to_datetime(raw_df["tpep_pickup_datetime"])
+    if color == "yellow":
+        datetime_cols = ["tpep_pickup_datetime", "tpep_dropoff_datetime"]
+    else:
+        datetime_cols = ["lpep_pickup_datetime", "lpep_dropoff_datetime"]
+    for col in datetime_cols:
+        raw_df[col] = pd.to_datetime(raw_df[col])
     return raw_df
 
 
@@ -71,16 +75,16 @@ def clean_data(raw_df: pd.DataFrame) -> pd.DataFrame:
 
 @task(retries=3, log_prints=True)
 def delete_files() -> None:
-    raw_file = f"../data_files/{color}/{color}_tripdata_{year}-{month}.csv.gz"
-    cleaned_file = f"../data_files/{color}/clean_{color}_tripdata_{year}-{month}.csv.gz"
+    raw_file = f"../data_files/{color}/raw/{color}_tripdata_{year}-{month}.csv.gz"
+    cleaned_file = f"../data_files/{color}/raw/clean_{color}_tripdata_{year}-{month}.csv.gz"
     for file in [raw_file, cleaned_file]:
         os.unlink(file)
 
 if __name__ == "__main__":
     # month = "02"
     # year = "2019"
-    color = "yellow"
-    months_list = range(6,13)
+    color = "green"
+    months_list = range(1,13)
     months_list_str = [f"{month:02}" for month in months_list]
     for year in ["2019"]:
         for month in months_list_str:

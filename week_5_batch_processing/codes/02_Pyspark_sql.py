@@ -14,7 +14,7 @@
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as f
 
-spark = SparkSession \
+spark = SparkSession.builder \
             .appName('testapp') \
             .getOrCreate()
 
@@ -102,4 +102,5 @@ df_summary = spark.sql("""
     )
 
 
-df_summary.write.parquet("../../data_files/report/report-2019/")
+df_summary.write.mode("overwrite"). \
+    parquet("../../data_files/report/report-2019/")
