@@ -115,6 +115,11 @@ df_summary = spark.sql("""
     """
     )
 
+spark.conf.set("temporaryGcsBucket", "dataproc-temp-asia-south1-232165419990-enpnj9el")
 
-df_summary.write.mode("overwrite"). \
-    parquet(output)
+    
+(df_summary.write.format("bigquery")
+  .option("table",output)
+  .save())
+
+
