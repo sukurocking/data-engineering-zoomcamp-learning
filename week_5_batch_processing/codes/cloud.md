@@ -58,7 +58,7 @@ gsutil cp 02_Pyspark_sql.py "gs://dtc-data-lake-dtc-de-course-388001/code"
 }
 
 
-
+### Saving report to GCS
 gcloud dataproc jobs submit pyspark \
     gs://dtc-data-lake-dtc-de-course-388001/code/02_Pyspark_sql.py \
     --cluster=dezoomcampcluster-787a \
@@ -67,3 +67,16 @@ gcloud dataproc jobs submit pyspark \
     --input_green=gs://dtc-data-lake-dtc-de-course-388001/green/\* \
     --input_yellow=gs://dtc-data-lake-dtc-de-course-388001/yellow/\* \
     --output=gs://dtc-data-lake-dtc-de-course-388001/report
+
+
+### Saving to BigQuery
+gcloud dataproc jobs submit pyspark \
+    gs://dtc-data-lake-dtc-de-course-388001/code/03_Pyspark_sql_bigquery.py \
+    --jars=gs://spark-lib/bigquery/spark-bigquery-with-dependencies_2.11-0.23.2.jar \
+    --cluster=dezoomcampcluster-787a \
+    --region=asia-south1 \
+    -- \
+    --input_green=gs://dtc-data-lake-dtc-de-course-388001/green/\* \
+    --input_yellow=gs://dtc-data-lake-dtc-de-course-388001/yellow/\* \
+    --output=trips_data_all.taxi_summary_report
+
