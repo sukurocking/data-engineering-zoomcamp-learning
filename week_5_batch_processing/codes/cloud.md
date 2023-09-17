@@ -1,19 +1,22 @@
+```shell
 python "02_Pyspark_sql.py" \
     --input_green "../../data_files/green/raw/*" \
     --input_yellow "../../data_files/yellow/raw/*" \
     --output "../../data_files/report/report_2019/"
-
+```
 
 # Parameters for usage in DataProc
+```shell
 --input_green=gs://dtc-data-lake-dtc-de-course-388001/green/*
 --input_yellow=gs://dtc-data-lake-dtc-de-course-388001/yellow/*
 --output=gs://dtc-data-lake-dtc-de-course-388001/report
-
-
+```
+```shell
 gsutil cp 02_Pyspark_sql.py "gs://dtc-data-lake-dtc-de-course-388001/code"
-
+```
 
 # REST request for submitting a job
+```json
 {
   "reference": {
     "jobId": "job-233db29b",
@@ -56,9 +59,10 @@ gsutil cp 02_Pyspark_sql.py "gs://dtc-data-lake-dtc-de-course-388001/code"
     ]
   }
 }
-
+```
 
 ### Saving report to GCS
+```shell
 gcloud dataproc jobs submit pyspark \
     gs://dtc-data-lake-dtc-de-course-388001/code/02_Pyspark_sql.py \
     --cluster=dezoomcampcluster-787a \
@@ -67,9 +71,11 @@ gcloud dataproc jobs submit pyspark \
     --input_green=gs://dtc-data-lake-dtc-de-course-388001/green/\* \
     --input_yellow=gs://dtc-data-lake-dtc-de-course-388001/yellow/\* \
     --output=gs://dtc-data-lake-dtc-de-course-388001/report
-
+```
 
 ### Saving to BigQuery
+
+```shell
 gcloud dataproc jobs submit pyspark \
     gs://dtc-data-lake-dtc-de-course-388001/code/03_Pyspark_sql_bigquery.py \
     --jars=gs://spark-lib/bigquery/spark-bigquery-with-dependencies_2.11-0.23.2.jar \
@@ -79,4 +85,4 @@ gcloud dataproc jobs submit pyspark \
     --input_green=gs://dtc-data-lake-dtc-de-course-388001/green/\* \
     --input_yellow=gs://dtc-data-lake-dtc-de-course-388001/yellow/\* \
     --output=trips_data_all.taxi_summary_report
-
+```
